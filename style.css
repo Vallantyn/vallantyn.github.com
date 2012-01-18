@@ -1,0 +1,15 @@
+/*
+    Document   : style
+    Created on : 18 janv. 2012, 19:54:36
+    Author     : J.Murtin
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+body {
+    margin-top: 300px;
+    font-family: 'Verdana';
+    text-align: center;
+    color: #333;
+}
+
