@@ -243,7 +243,8 @@ function OnWindowResize(e) {
     gl.viewportHeight = HEIGHT;
 }
 
-function onMouseDown() {
+function onMouseDown(event) {
+    event.preventDefault();
     if (event.clientX > window.innerWidth/2) {
 	kirby.state.walk = true;
 	kirby.state.right = true;
@@ -260,7 +261,8 @@ function onMouseDown() {
     }
 }
 
-function onMouseUp() {
+function onMouseUp(event) {
+    event.preventDefault();
     if (event.clientX > window.innerWidth/2) {
 	kirby.state.walk = false;
     } else if (event.clientX < window.innerWidth/2) {
