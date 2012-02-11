@@ -14,6 +14,14 @@ var shaderProgram;
 var lastTime = 0;
 var unverse = 0;
 
+var dclick = false;
+
+var t = {
+    st:'',
+    end:'',
+    tot:''
+};
+
 function webGLStart() {
     var WIDTH = document.body.offsetWidth;
     var HEIGHT = document.body.offsetHeight;
@@ -168,7 +176,8 @@ function drawScene() {
 }
 
 function tick () {
-    requestAnimFrame(tick);
+    //requestAnimFrame(tick);
+    t.st = new Date().getTime();
 
     animKirby();
     for (var i=0; i<map.portals.length; i++) map.portals[i].Anim();
@@ -176,6 +185,14 @@ function tick () {
     drawScene();
     moveKirby();
     drawMiniMap();
+
+    t.end = new Date().getTime();
+
+    t.tot = t.end-t.st;
+    if (t.tot < 0) {t.tot = 0}
+    window.setTimeout(tick, 16-t.tot);
+
+
 }
 
 function drawToMap() {
@@ -244,31 +261,63 @@ function OnWindowResize(e) {
 }
 
 function onMouseDown(event) {
+    console.log(event.target.alt);
     event.preventDefault();
-    if (event.clientX > window.innerWidth/2) {
-	kirby.state.walk = true;
-	kirby.state.right = true;
-	kirby.state.left = false;
-	kirby.state.idle = false;
-    } else if (event.clientX < window.innerWidth/2) {
-	kirby.state.walk = true;
-	kirby.state.right = false;
-	kirby.state.left = true;
-	kirby.state.idle = false;
-    }
-    if (event.which == 2) {
-	kirby.state.run = true;
+
+    if (!map.unverse) {
+	if(event.clientX > window.innerWidth/2 && event.target == "body") {
+	    kirby.state.walk = true;
+	    kirby.state.right = true;
+	    kirby.state.left = false;
+	    kirby.state.idle = false;
+
+	} else if(event.clientX < window.innerWidth/2 && event.target == "body") {
+	    kirby.state.walk = true;
+	    kirby.state.right = false;
+	    kirby.state.left = true;
+	    kirby.state.idle = false;
+
+	}
+
+	if(event.target.alt == "Maj") {
+	    kirby.state.run = true;
+
+	}
+
+	if(event.target.alt == "Espace" && kirby.state.fall == false) {
+	    kirby.state.jump = true;
+	}
+
+	if (event.target.alt == "Ctrl") {
+	    map.unverse = true;
+	}
     }
 }
 
 function onMouseUp(event) {
+     console.log(event.target.alt);
     event.preventDefault();
-    if (event.clientX > window.innerWidth/2) {
-	kirby.state.walk = false;
-    } else if (event.clientX < window.innerWidth/2) {
-	kirby.state.walk = false;
-    }
-    if (event.which == 2) {
-	kirby.state.run = false;
+    //event.preventPropagation();
+
+     if (!map.unverse) {
+	if(event.clientX > window.innerWidth/2 && event.target == "body") {
+	    kirby.state.walk = false;
+
+	} else if(event.clientX < window.innerWidth/2 && event.target == "body") {
+	    kirby.state.walk = false;
+
+	}
+
+	if(event.target.alt == "Maj") {
+	    kirby.state.run = false;
+
+	}
+
+//	if(event.target.alt == "Espace") {
+//	    kirby.state.jump = true;
+//	}
+
+	kirby.anim[id].i = 0;
+	kirby.anim[id].c = 0;
     }
 }
