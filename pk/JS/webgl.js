@@ -242,3 +242,31 @@ function OnWindowResize(e) {
     gl.viewportWidth = WIDTH;
     gl.viewportHeight = HEIGHT;
 }
+
+function onMouseDown() {
+    if (event.clientX > window.innerWidth/2) {
+	kirby.state.walk = true;
+	kirby.state.right = true;
+	kirby.state.left = false;
+	kirby.state.idle = false;
+    } else if (event.clientX < window.innerWidth/2) {
+	kirby.state.walk = true;
+	kirby.state.right = false;
+	kirby.state.left = true;
+	kirby.state.idle = false;
+    }
+    if (event.which == 2) {
+	kirby.state.run = true;
+    }
+}
+
+function onMouseUp() {
+    if (event.clientX > window.innerWidth/2) {
+	kirby.state.walk = false;
+    } else if (event.clientX < window.innerWidth/2) {
+	kirby.state.walk = false;
+    }
+    if (event.which == 2) {
+	kirby.state.run = false;
+    }
+}
