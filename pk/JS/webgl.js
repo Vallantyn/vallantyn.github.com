@@ -14,14 +14,6 @@ var shaderProgram;
 var lastTime = 0;
 var unverse = 0;
 
-var dclick = false;
-
-var t = {
-    st:'',
-    end:'',
-    tot:''
-};
-
 function webGLStart() {
     var WIDTH = document.body.offsetWidth;
     var HEIGHT = document.body.offsetHeight;
@@ -36,24 +28,15 @@ function webGLStart() {
     initGL(canvas);
     initShaders();
     initKirby();
-
-    lvl = new Level();
-    cLvl = 'level01';
-    bak = lvl[cLvl];
-    map = new Map(lvl[cLvl].array);
-
-    map.Init();
     initMiniMap();
-
+    
     document.addEventListener('keydown', keyDown, false);
     document.addEventListener('keyup', keyUp, false);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
-    kirby.x = lvl[cLvl].start[0]*4;
-    kirby.y = lvl[cLvl].start[1]*2;
-
+    changeLevel('tuto01');
     tick();
 }
 
@@ -93,9 +76,10 @@ function initShaders() {
     shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
     gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
 
-    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-    shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-    shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");    // Projection Matrix
+    shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");  // Model/View matrix
+    shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");    // Normal Matrix
+    
     shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
     shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
     shaderProgram.useTexturesUniform = gl.getUniformLocation(shaderProgram, "uUseTextures")
@@ -153,7 +137,7 @@ function drawScene() {
     gl.viewport(0,0,gl.viewportWidth, gl.viewportHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.BLEND);
+    
 
     mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
 
@@ -169,15 +153,16 @@ function drawScene() {
     mat4.rotate(mvMatrix, degToRad(unverse), [1,0,0]);
 
     map.Draw();
+    gl.enable(gl.BLEND);
     for (var i=0; i<map.portals.length; i++) map.portals[i].Draw();
     map.exit.Draw();
     drawKirby();
+    gl.disable(gl.BLEND);
 
 }
 
 function tick () {
-    //requestAnimFrame(tick);
-    t.st = new Date().getTime();
+    requestAnimFrame(tick);
 
     animKirby();
     for (var i=0; i<map.portals.length; i++) map.portals[i].Anim();
@@ -185,64 +170,11 @@ function tick () {
     drawScene();
     moveKirby();
     drawMiniMap();
-
-    t.end = new Date().getTime();
-
-    t.tot = t.end-t.st;
-    if (t.tot < 0) {t.tot = 0}
-    window.setTimeout(tick, 16-t.tot);
-
-
 }
 
 function drawToMap() {
     mat4.rotate(mvMatrix, degToRad(10), [1, 0, 0]);
     mat4.translate(mvMatrix, [-kirby.x, -kirby.y, 0.0])
-}
-
-function keyDown(e) {
-    if (!map.unverse) {
-	if(e.keyCode == 39 || e.keyCode == 68) {
-	    kirby.state.walk = true;
-	    kirby.state.right = true;
-	    kirby.state.left = false;
-	    kirby.state.idle = false;
-
-	} else if(e.keyCode == 37 || e.keyCode == 81) {
-	    kirby.state.walk = true;
-	    kirby.state.right = false;
-	    kirby.state.left = true;
-	    kirby.state.idle = false;
-
-	} else if(e.keyCode == 16) {
-	    kirby.state.run = true;
-
-	} else if((e.keyCode == 32 || e.keyCode == 38 || e.keyCode == 90) && kirby.state.fall == false) {
-	    kirby.state.jump = true;
-	} else if (e.keyCode == 17) {
-	    map.unverse = true;
-	}
-    }
-}
-
-function keyUp(e) {
-    if (!map.unverse) {
-	if(e.keyCode == 39 || e.keyCode == 68) {
-	    kirby.state.walk = false;
-
-	} else if(e.keyCode == 37 || e.keyCode == 81) {
-	    kirby.state.walk = false;
-
-	} else if(e.keyCode == 16) {
-	    kirby.state.run = false;
-
-	} else if((e.keyCode == 32 || e.keyCode == 38 || e.keyCode == 90) && kirby.state.fall == false) {
-	    kirby.state.jump = true;
-	}
-
-	kirby.anim[id].i = 0;
-	kirby.anim[id].c = 0;
-    }
 }
 
 function OnWindowResize(e) {
@@ -258,66 +190,4 @@ function OnWindowResize(e) {
     document.getElementById('canvas').height = HEIGHT;
     gl.viewportWidth = WIDTH;
     gl.viewportHeight = HEIGHT;
-}
-
-function onMouseDown(event) {
-    console.log(event.target.alt);
-    event.preventDefault();
-
-    if (!map.unverse) {
-	if(event.clientX > window.innerWidth/2 && event.target == "body") {
-	    kirby.state.walk = true;
-	    kirby.state.right = true;
-	    kirby.state.left = false;
-	    kirby.state.idle = false;
-
-	} else if(event.clientX < window.innerWidth/2 && event.target == "body") {
-	    kirby.state.walk = true;
-	    kirby.state.right = false;
-	    kirby.state.left = true;
-	    kirby.state.idle = false;
-
-	}
-
-	if(event.target.alt == "Maj") {
-	    kirby.state.run = true;
-
-	}
-
-	if(event.target.alt == "Espace" && kirby.state.fall == false) {
-	    kirby.state.jump = true;
-	}
-
-	if (event.target.alt == "Ctrl") {
-	    map.unverse = true;
-	}
-    }
-}
-
-function onMouseUp(event) {
-     console.log(event.target.alt);
-    event.preventDefault();
-    //event.preventPropagation();
-
-     if (!map.unverse) {
-	if(event.clientX > window.innerWidth/2 && event.target == "body") {
-	    kirby.state.walk = false;
-
-	} else if(event.clientX < window.innerWidth/2 && event.target == "body") {
-	    kirby.state.walk = false;
-
-	}
-
-	if(event.target.alt == "Maj") {
-	    kirby.state.run = false;
-
-	}
-
-//	if(event.target.alt == "Espace") {
-//	    kirby.state.jump = true;
-//	}
-
-	kirby.anim[id].i = 0;
-	kirby.anim[id].c = 0;
-    }
 }
